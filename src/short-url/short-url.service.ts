@@ -19,7 +19,7 @@ export class ShortUrlService {
   }
 
   findAll() {
-    return `This action returns all shortUrl`;
+    return this.shorturlModel.find();
   }
 
   async findOne(id: string) {
