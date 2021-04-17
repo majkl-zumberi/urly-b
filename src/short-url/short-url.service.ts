@@ -37,6 +37,36 @@ export class ShortUrlService {
   findAll() {
     return this.shorturlModel.find().populate('devices').exec();
   }
+  statistics() {
+    return this.deviceModel.aggregate([
+      { $group : { 
+        _id : { year: { $year : "$date" }, month: { $month : "$date" },day: { $dayOfMonth : "$date" }}, 
+        count : { $sum : 1 }}
+        }, 
+      { $group : { 
+            _id : { year: "$_id.year", month: "$_id.month" }, 
+            dailyusage: { $push: { day: "$_id.day", count: "$count" }}}
+            }, 
+      { $group : { 
+            _id : { year: "$_id.year" }, 
+            monthlyusage: { $push: { month: "$_id.month",
+            monthString:{
+              $let: {
+                vars: {
+                    monthsInString: [, 'Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
+                },
+                in: {
+                    $arrayElemAt: ['$$monthsInString', '$_id.month']
+                }
+            }
+            },
+            totalMonth:{$sum:"$dailyusage.count"},
+            dailyusage: "$dailyusage" }}}
+            },
+    ],(err,res)=>{
+      console.log({res})
+    })
+  }
 
   async findOne(id: string,deviceInfo:any) {
     const urlByShort= await this.shorturlModel.findOne({shorturl:id})

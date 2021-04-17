@@ -27,6 +27,13 @@ export class ShortUrlController {
     return this.shortUrlService.findAll();
   }
 
+  @Get('statistics')
+  @Roles(Role.Admin)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  statistics() {
+    return this.shortUrlService.statistics();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string, @Req() request) {
     const deviceDetector = new DeviceDetector();
