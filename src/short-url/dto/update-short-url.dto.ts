@@ -1,2 +1,6 @@
 
-export class UpdateShortUrlDto{}
+export class UpdateShortUrlDto{
+    fullurl: string;
+    shorturl:string;
+    clicks:number;
+}
