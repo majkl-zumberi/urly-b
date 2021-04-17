@@ -6,13 +6,14 @@ import { CreateShortUrlDto } from './dto/create-short-url.dto';
 import { FormatShortUrl } from './dto/format-short-url.dto';
 import { UpdateShortUrlDto } from './dto/update-short-url.dto';
 import { ShortUrl, ShortUrlDocument } from './schema/shorturl.schema';
-
+import isUrl = require('is-url');
 @Injectable()
 export class ShortUrlService {
   constructor(
     @InjectModel(ShortUrl.name) private shorturlModel:Model<ShortUrlDocument>,
     @InjectModel(Device.name) private deviceModel:Model<DeviceDocument>){}
   async create(createShortUrlDto: CreateShortUrlDto, deviceInfo:any) {
+    if(!(isUrl(createShortUrlDto.fullurl))) throw new BadRequestException("url non valido");
     const createdDeviceInfo= new this.deviceModel({
       clientType:deviceInfo.client.type || "unknown",
       clientName:deviceInfo.client.name || "unknown", 
