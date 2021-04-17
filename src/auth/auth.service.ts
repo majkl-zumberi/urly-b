@@ -40,7 +40,7 @@ export class AuthService {
 
     async validateUserByPassword(authCredentialsDto: AuthCredentialsDto) {
         let userToAttempt: any = await this.findOneByEmail(authCredentialsDto.email);
-        if (!userToAttempt) throw new BadRequestException('Email not found !');
+        if (!userToAttempt) throw new BadRequestException('Email non trovata!');
         return new Promise((resolve, reject) => {
             userToAttempt.checkPassword(authCredentialsDto.password, (err, isMatch) => {
                 if (err) {
@@ -49,10 +49,11 @@ export class AuthService {
                 if (isMatch) {
                     const payload: any = {
                         token: this.createJwtPayload(userToAttempt),
+                        isAdmin:userToAttempt.roles.includes('admin')
                     }
                     resolve(payload);
                 } else {
-                    reject(new BadRequestException(`Password don't match`));
+                    reject(new BadRequestException(`Password non corretta`));
                 }
             });
         });
@@ -76,6 +77,7 @@ export class AuthService {
     }
 
     createJwtPayload(user) {
+        console.log({user})
         let data: JwtPayload = {
             _id: user._id,
             email: user.email
