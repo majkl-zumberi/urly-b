@@ -8,6 +8,7 @@ import { ConfigService } from './core/config/config.service';
 import { ShortUrlModule } from './short-url/short-url.module';
 import * as winston from 'winston';
 import { WinstonModule } from 'nest-winston';
+import { DeviceModule } from './device/device.module';
 @Module({
   imports: [
     ConfigModule,
@@ -22,6 +23,7 @@ import { WinstonModule } from 'nest-winston';
     AuthModule,
     WinstonModule,
     ShortUrlModule,
+    DeviceModule,
   ],
   controllers: [AppController],
   providers: [AppService],
