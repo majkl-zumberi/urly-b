@@ -1,12 +1,12 @@
-import { Injectable, UnauthorizedException, BadRequestException, ArgumentsHost } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { AuthCredentialsDto } from './dto/auth-credentials.dto';
-import { JwtPayload } from './jwt-payload.interface';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { TokenVerifyEmail, User, } from './user.model';
-import { v1 as uuidv1 } from 'uuid';
 import { Role } from 'src/core/enums/role.enum';
+import { v1 as uuidv1 } from 'uuid';
+import { AuthCredentialsDto } from './dto/auth-credentials.dto';
+import { JwtPayload } from './jwt-payload.interface';
+import { TokenVerifyEmail, User } from './user.model';
 
 @Injectable()
 export class AuthService {
@@ -65,6 +65,11 @@ export class AuthService {
 
     async getAllUsers() {
         return await this.userModel.find();
+    }
+
+    async totalusers() {
+        const totalUsers=await this.userModel.estimatedDocumentCount();
+        return {totalUsers};
     }
 
     async validateUserByJwt(payload: JwtPayload) {
