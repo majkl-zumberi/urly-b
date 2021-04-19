@@ -39,6 +39,7 @@ export class ShortUrlService {
   }
   statistics() {
     return this.deviceModel.aggregate([
+      {$sort:{"date.year":1, "date.month":1, "date.day":1}},
       { $group : { 
         _id : { year: { $year : "$date" }, month: { $month : "$date" },day: { $dayOfMonth : "$date" }}, 
         count : { $sum : 1 }}
@@ -61,11 +62,73 @@ export class ShortUrlService {
             }
             },
             totalMonth:{$sum:"$dailyusage.count"},
-            dailyusage: "$dailyusage" }}}
-            },
+            dailyusage: "$dailyusage" }}},
+          },
+          
     ],(err,res)=>{
       console.log({res})
     })
+  }
+
+  statisticsDevices() {
+    return this.deviceModel.aggregate([
+      {$sort:{"date.year":1, "date.month":1, "date.day":1}},
+      { $group : { 
+        _id : { year: { $year : "$date" }, month: { $month : "$date" },day: { $dayOfMonth : "$date" }, deviceType:"$deviceType"}, 
+        count : { $sum : 1 }}
+        }, 
+      { $group : { 
+            _id : { year: "$_id.year", month: "$_id.month", deviceType:"$_id.deviceType"}, 
+            dailyusage: { $push: { day: "$_id.day", count: "$count" }}}
+            }, 
+      { $group : { 
+            _id : { deviceType: "$_id.deviceType" }, 
+            monthlyusage: { $push: { month: "$_id.month",
+            monthString:{
+              $let: {
+                vars: {
+                    monthsInString: [, 'Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
+                },
+                in: {
+                    $arrayElemAt: ['$$monthsInString', '$_id.month']
+                }
+            }
+            },
+            totalMonth:{$sum:"$dailyusage.count"},
+            dailyusage: "$dailyusage" }}},
+          },
+          
+    ],(err,res)=>{
+      console.log({res})
+    })
+  }
+
+  async totalshortened() {
+    const totalShortened=await this.shorturlModel.estimatedDocumentCount();
+    return {totalShortened};
+  }
+
+  totalclicks() {
+    return this.shorturlModel.aggregate([
+      { $group : { 
+          _id: null,
+          totalClicksAverage: {$avg:"$clicks"},
+        },
+      }, 
+      {$addFields:{
+        totalClicksAverageRounded: { $round: ["$totalClicksAverage", 1] }
+      }}
+    ])
+  }
+
+  mostUsedDevice() {
+    return this.deviceModel.aggregate([
+      { $group : { 
+          _id: "$os",
+          total: {$sum:1},
+        }
+      }, 
+    ])
   }
 
   async findOne(id: string,deviceInfo:any) {

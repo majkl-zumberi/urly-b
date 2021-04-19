@@ -34,6 +34,34 @@ export class ShortUrlController {
     return this.shortUrlService.statistics();
   }
 
+  @Get('statistics/devices')
+  @Roles(Role.Admin)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  statisticsDevices() {
+    return this.shortUrlService.statisticsDevices();
+  }
+
+  @Get('statistics/shortened')
+  @Roles(Role.Admin)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  totalshortened() {
+    return this.shortUrlService.totalshortened();
+  }
+
+  @Get('statistics/clicks')
+  @Roles(Role.Admin)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  totalclicks() {
+    return this.shortUrlService.totalclicks();
+  }
+
+  @Get('statistics/devices/mostused')
+  @Roles(Role.Admin)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  mostuseddevice() {
+    return this.shortUrlService.mostUsedDevice();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string, @Req() request) {
     const deviceDetector = new DeviceDetector();
