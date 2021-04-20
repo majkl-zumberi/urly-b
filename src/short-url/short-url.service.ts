@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Device, DeviceDocument } from 'src/device/schema/device.schema';
+import { CreateShortUrlSlugDto } from './dto/create-short-url-slug.dto';
 import { CreateShortUrlDto } from './dto/create-short-url.dto';
 import { FormatShortUrl } from './dto/format-short-url.dto';
 import { UpdateShortUrlDto } from './dto/update-short-url.dto';
@@ -34,8 +35,38 @@ export class ShortUrlService {
     }
   }
 
+  async createWithSlug(createShortUrlSlugDto: CreateShortUrlSlugDto, deviceInfo:any) {
+    if(!(isUrl(createShortUrlSlugDto.fullurl))) throw new BadRequestException("url non valido");
+    if(createShortUrlSlugDto.slug=='') throw new BadRequestException("slug non valido");
+    if(createShortUrlSlugDto.slug.indexOf(' ') >= 0) throw new BadRequestException("slug non valido, non può contenere spazi");
+    const shortUrlExist =await this.shorturlModel.exists({shorturl:createShortUrlSlugDto.slug});
+    if(shortUrlExist) throw new BadRequestException("slug già esistente");
+    const createdDeviceInfo= new this.deviceModel({
+      clientType:deviceInfo.client.type || "unknown",
+      clientName:deviceInfo.client.name || "unknown", 
+      os:deviceInfo.os.name || "unknown",
+      deviceType:deviceInfo.device.type || "unknown",
+      deviceBrand:deviceInfo.device.brand || "unknown",
+      date:new Date()
+    });
+    const createdDevice = await createdDeviceInfo.save();
+    const createdShortUrl= new this.shorturlModel({
+      fullurl:createShortUrlSlugDto.fullurl,
+      shorturl:createShortUrlSlugDto.slug,
+      devices:createdDevice.id
+    });
+    try {
+      return FormatShortUrl.formatShort(await createdShortUrl.save());
+    } catch (e) {
+      throw new BadRequestException(e.message);
+    }
+  }
+
   findAll() {
     return this.shorturlModel.find().populate('devices').exec();
+  }
+  getlimited(limit: number) {
+    return this.shorturlModel.find().limit(limit)
   }
   statistics() {
     return this.deviceModel.aggregate([
@@ -154,7 +185,7 @@ export class ShortUrlService {
     return this.shorturlModel.findByIdAndUpdate({_id:id},updateShortUrlDto,{new:true});
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     return await this.shorturlModel.deleteOne({_id: id});
   }
 }

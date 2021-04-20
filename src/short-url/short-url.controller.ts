@@ -3,6 +3,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { Role } from 'src/core/enums/role.enum';
 import { RolesGuard } from 'src/core/guards/roles.guard';
+import { CreateShortUrlSlugDto } from './dto/create-short-url-slug.dto';
 import { CreateShortUrlDto } from './dto/create-short-url.dto';
 import { UpdateShortUrlDto } from './dto/update-short-url.dto';
 import { ShortUrlService } from './short-url.service';
@@ -16,8 +17,17 @@ export class ShortUrlController {
     const deviceDetector = new DeviceDetector();
     const userAgent = request.headers['user-agent'];
     const device = deviceDetector.parse(userAgent);
-    console.log({device})
     return this.shortUrlService.create(createShortUrlDto,device);
+  }
+
+  @Post('slug')
+  @Roles(Role.User)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  createWithSlug(@Body() createShortUrlSlugDto: CreateShortUrlSlugDto, @Req() request) {
+    const deviceDetector = new DeviceDetector();
+    const userAgent = request.headers['user-agent'];
+    const device = deviceDetector.parse(userAgent);
+    return this.shortUrlService.createWithSlug(createShortUrlSlugDto,device);
   }
 
   @Get()
@@ -25,6 +35,13 @@ export class ShortUrlController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   findAll() {
     return this.shortUrlService.findAll();
+  }
+
+  @Get('limit/:limit')
+  @Roles(Role.Admin)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  getlimited(@Param('limit') limit: string) {
+    return this.shortUrlService.getlimited(+limit);
   }
 
   @Get('statistics')
@@ -82,7 +99,7 @@ export class ShortUrlController {
   @Roles(Role.Admin)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   async remove(@Param('id') id: string) {
-    await this.shortUrlService.remove(+id);
+    await this.shortUrlService.remove(id);
     return null;
   }
 }
